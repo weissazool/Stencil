@@ -149,9 +149,9 @@ class ForNode : NodeType {
           let result = try push(value: item, context: context) {
             try renderNodes(nodes, context)
           }
-          shouldBreak = context[LoopTerminationNode.break.terminator] != nil
+          shouldBreak = context[LoopTerminationNode.breakContextKey] != nil
           // if outer loop should be continued we should break from current loop
-          if let shouldContinueLabel = context[LoopTerminationNode.continue.terminator] as? String {
+          if let shouldContinueLabel = context[LoopTerminationNode.continueContextKey] as? String {
             shouldBreak = shouldContinueLabel != label || label == nil
           }
           return result
@@ -168,18 +168,21 @@ class ForNode : NodeType {
 }
 
 struct LoopTerminationNode: NodeType {
-  static let `break` = LoopTerminationNode(name: "break")
-  static let `continue` = LoopTerminationNode(name: "continue")
-  
+  static let breakContextKey = "forloop_break"
+  static let continueContextKey = "forloop_continue"
+
+  let token: Token?
+
   let name: String
   let label: String?
-  var terminator: String {
+  var contextKey: String {
     return "forloop_\(name)"
   }
 
-  private init(name: String, label: String? = nil) {
+  private init(name: String, label: String? = nil, token: Token) {
     self.name = name
     self.label = label
+    self.token = token
   }
   
   static func parse(_ parser:TokenParser, token:Token) throws -> LoopTerminationNode {
@@ -191,7 +194,7 @@ struct LoopTerminationNode: NodeType {
     guard parser.hasOpenedForTag() else {
       throw TemplateSyntaxError("'\(token.contents)' can be used only inside loop body")
     }
-    return LoopTerminationNode(name: components[0], label: components.count == 2 ? components[1] : nil)
+    return LoopTerminationNode(name: components[0], label: components.count == 2 ? components[1] : nil, token: token)
   }
   
   func render(_ context: Context) throws -> String {
@@ -212,7 +215,7 @@ struct LoopTerminationNode: NodeType {
     }
 
     let depth = context.dictionaries.count - offset - 1
-    context.dictionaries[depth][terminator] = label ?? true
+    context.dictionaries[depth][contextKey] = label ?? true
     
     return ""
   }

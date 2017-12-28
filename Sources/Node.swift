@@ -27,8 +27,8 @@ public func renderNodes(_ nodes:[NodeType], _ context:Context) throws -> String 
   for node in nodes {
     renderedNodes += try node.render(context)
     
-    let shouldBreak = context[LoopTerminationNode.break.terminator] != nil
-    let shouldContinue = context[LoopTerminationNode.continue.terminator] != nil
+    let shouldBreak = context[LoopTerminationNode.breakContextKey] != nil
+    let shouldContinue = context[LoopTerminationNode.continueContextKey] != nil
     
     if shouldBreak || shouldContinue {
       break
