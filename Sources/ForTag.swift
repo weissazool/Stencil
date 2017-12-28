@@ -132,7 +132,9 @@ class ForNode : NodeType {
     if !values.isEmpty {
       let count = values.count
       var result = ""
-      
+
+      var currentLoopContext = context["forloop"] as? [String: Any]
+
       for (index, item) in values.enumerated() {
         var forContext: [String: Any] = [
           "first": index == 0,
@@ -141,7 +143,12 @@ class ForNode : NodeType {
           "counter0": index
           ]
         if let label = label {
+          forContext[label] = forContext
           forContext["label"] = label
+        }
+        if let label = currentLoopContext?["label"] as? String,
+          let labeledContext = currentLoopContext?[label] {
+          forContext[label] = labeledContext
         }
 
         var shouldBreak: Bool = false

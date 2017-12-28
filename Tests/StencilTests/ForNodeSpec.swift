@@ -365,6 +365,16 @@ func testForNode() {
 
       $0.context("given labeled loop") {
 
+        $0.it("can access labeled outer loop context from inner loop") {
+          let template = Template(templateString: "{% outer: for item in items %}" +
+            "{% for item in items %}" +
+            "{{ forloop.counter }}-{{ forloop.outer.counter }}\n" +
+            "{% endfor %}" +
+            "{% endfor %}\n")
+
+          try expect(template.render(context)) == "1-1\n2-1\n3-1\n1-2\n2-2\n3-2\n1-3\n2-3\n3-3\n\n"
+        }
+
         $0.it("breaks labeled loop") {
           let template = Template(templateString: "{% outer: for item in items %}" +
             "outer: {{ item }}\n" +
