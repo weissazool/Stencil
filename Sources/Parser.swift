@@ -48,7 +48,11 @@ public class TokenParser {
           return nodes
         }
 
-        if let tag = token.components().first {
+        let components = token.components()
+        if var tag = components.first {
+          if tag.hasSuffix(":") && components.count >= 2 {
+            tag = components[1]
+          }
           let parser = try findTag(name: tag)
           nodes.append(try parser(self, token))
         }

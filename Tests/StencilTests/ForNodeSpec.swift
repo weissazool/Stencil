@@ -338,7 +338,7 @@ func testForNode() {
         
         try expect(template.render(context)) == "outer: 1\ninner: 1\nouter: 2\ninner: 1\nouter: 3\ninner: 1\n\n"
       }
-      
+
       $0.it("continues outer loop") {
         let template = Template(templateString: "{% for item in items %}" +
           "{% for item in items %}" +
@@ -361,6 +361,50 @@ func testForNode() {
           "{% endfor %}\n")
         
         try expect(template.render(context)) == "outer: 1\nouter: 2\nouter: 3\n\n"
+      }
+
+      $0.context("given labeled loop") {
+
+        $0.it("breaks labeled loop") {
+          let template = Template(templateString: "{% outer: for item in items %}" +
+            "outer: {{ item }}\n" +
+            "{% for item in items %}" +
+            "{% break outer %}" +
+            "inner: {{ item }}\n" +
+            "{% endfor %}" +
+            "{% endfor %}\n")
+
+          try expect(template.render(context)) == "outer: 1\n\n"
+        }
+
+        $0.it("continues labeled loop") {
+          let template = Template(templateString: "{% outer: for item in items %}" +
+            "{% for item in items %}" +
+            "inner: {{ item }}\n" +
+            "{% continue outer %}" +
+            "{% endfor %}" +
+            "outer: {{ item }}\n" +
+            "{% endfor %}\n")
+
+          try expect(template.render(context)) == "inner: 1\ninner: 1\ninner: 1\n\n"
+        }
+
+        $0.it("throws when breaking with unknown label") {
+          let template = Template(templateString: "{% outer: for item in items %}" +
+            "{% break inner %}" +
+            "{% endfor %}\n")
+
+          try expect(template.render(context)).toThrow()
+        }
+
+        $0.it("throws when continuing with unknown label") {
+          let template = Template(templateString: "{% outer: for item in items %}" +
+            "{% continue inner %}" +
+            "{% endfor %}\n")
+
+          try expect(template.render(context)).toThrow()
+        }
+
       }
     }
     
